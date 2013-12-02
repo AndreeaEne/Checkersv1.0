@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.applet.*;
 import java.awt.*;
 
+// Main class
 public class CheckersApplet extends Applet
 {
     public static int rows = 8;
