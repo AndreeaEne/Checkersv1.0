@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Vector;
 
 // jframe == fereastra
 // mouselistener == ca sa primim evenimente legate de mouse
@@ -42,6 +43,9 @@ public class   CheckersProgram extends javax.swing.JFrame implements MouseListen
 
     public int enemyId = 1;
     public int humanId = 2;
+
+    public int humanPieces = 8;
+    public int enemyPieces = 8;
 
     public CheckersProgram()
     {
@@ -145,7 +149,6 @@ public class   CheckersProgram extends javax.swing.JFrame implements MouseListen
         return false;
     }
 
-
     /*
     Mut piesa de pe [e][f] pe [i][j]
      celula pe care am dat drumul piesa este la i,j
@@ -164,23 +167,48 @@ public class   CheckersProgram extends javax.swing.JFrame implements MouseListen
 
         // Stergem piesa inamica
         if (e + 2 == i && f + 2 == j && cellState[e + 1][f + 1] == cellStateEnemy) {
+            if (cellState[e + 1][f + 1] == humanId) {
+                humanPieces--;
+            }
+            else {
+                enemyPieces--;
+            }
+
             cellState[e + 1][f + 1] = 0;
             this.remove(jLabelDots[e + 1][f + 1]);
         }
 
 
         if( e + 2 == i && f - 2 == j && cellState[e + 1][f - 1] == cellStateEnemy) {
+            if (cellState[e + 1][f - 1] == humanId) {
+                humanPieces--;
+            }
+            else {
+                enemyPieces--;
+            }
             cellState[e + 1][f - 1] = 0;
             this.remove(jLabelDots[e + 1][f - 1]);
 
         }
 
         if(e - 2 == i && f + 2 == j && cellState[e - 1][f + 1] == cellStateEnemy) {
+            if (cellState[e - 1][f + 1] == humanId) {
+                humanPieces--;
+            }
+            else {
+                enemyPieces--;
+            }
             cellState[e - 1][f + 1] = 0;
             this.remove(jLabelDots[e - 1][f + 1]);
         }
 
         if(e - 2 == i && f - 2 == j && cellState[e - 1][f - 1] == cellStateEnemy) {
+            if (cellState[e - 1][f - 1] == humanId) {
+                humanPieces--;
+            }
+            else {
+                enemyPieces--;
+            }
             cellState[e - 1][f - 1] = 0;
             this.remove(jLabelDots[e - 1][f - 1]);
         }
@@ -202,8 +230,13 @@ public class   CheckersProgram extends javax.swing.JFrame implements MouseListen
         ) {
             doMove(e, f, i, j);
 
+            if (enemyPieces == 0) {
+                JOptionPane.showMessageDialog(null, "Ai castigat!", "Jocul s-a terminat", JOptionPane.INFORMATION_MESSAGE);
+                System.exit(0);
+            }
+
             // Muta calculator
-            int moves[][] = {
+            int moveDirections[][] = {
                 {-1, -1},
                 {-1, +1},
                 {+1, -1},
@@ -214,29 +247,34 @@ public class   CheckersProgram extends javax.swing.JFrame implements MouseListen
                 {+2, +2},
             };
 
+            Vector<CheckersMove> possibleMoves = new Vector<CheckersMove>();
 
-
-            boolean hasMoved = false;
+            // Adauga toate mutarile in vector.
             for (int a = 0; a < dotsPerRow; a++) {
                 for (int b = 0; b < dotsPerCol; b++) {
                     if (cellState[a][b] == enemyId) {
-                        for (int c = 0; c < moves.length; c++) {
-                            if (canMove(a, b, a + moves[c][0], b + moves[c][1])) {
-                                doMove(a, b, a + moves[c][0], b + moves[c][1]);
-                                hasMoved = true;
-                                break;
+                        for (int c = 0; c < moveDirections.length; c++) {
+                            if (canMove(a, b, a + moveDirections[c][0], b + moveDirections[c][1])) {
+                                CheckersMove m = new CheckersMove();
+
+                                m.srcX = a;
+                                m.srcY = b;
+                                m.destX = a + moveDirections[c][0];
+                                m.destY = b + moveDirections[c][1];
+
+                                possibleMoves.add(m);
                             }
                         }
                     }
-
-                    if (hasMoved) {
-                        break;
-                    }
                 }
+            }
+        
+            CheckersMove theChosenMove = possibleMoves.get((int)(Math.random() * possibleMoves.size()));
+            doMove(theChosenMove.srcX, theChosenMove.srcY, theChosenMove.destX, theChosenMove.destY);
 
-                if (hasMoved) {
-                    break;
-                }
+            if (humanPieces == 0) {
+                JOptionPane.showMessageDialog(null, "Ai pierdut!", "Jocul s-a terminat", JOptionPane.INFORMATION_MESSAGE);
+                System.exit(0);
             }
         }
 
