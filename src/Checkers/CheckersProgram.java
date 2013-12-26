@@ -1,5 +1,5 @@
 
-/**
+/*
  * Created with IntelliJ IDEA.
  * User: Andreea-Daniela Ene
  * Date: 12/2/13
@@ -39,6 +39,9 @@ public class   CheckersProgram extends javax.swing.JFrame implements MouseListen
     public int dotsPerRow = 8;
     public int dotsPerCol = 8;
     public int size;
+
+    public int enemyId = 1;
+    public int humanId = 2;
 
     public CheckersProgram()
     {
@@ -119,21 +122,10 @@ public class   CheckersProgram extends javax.swing.JFrame implements MouseListen
         this.setLayout(null);
     }
 
-    public void piesaDropped(MouseEvent evt) {
-        // src este labelul de pe care mutam piesa
-        Component src = evt.getComponent();
-
-        // aflam x si y relativ la frame si aflam celula de la pozitia respectiva
-        int i = (evt.getX() + src.getX()) / size;
-        int j = (evt.getY() + src.getY()) / size;
-        int e = src.getX() / size;
-        int f = src.getY() / size;
-
-        int cellStateEnemy = cellState[e][f] == 1 ? 2 : 1;
-
+    public boolean canMove(int e, int f, int i, int j) {
         if (
-            i > 0 && i < dotsPerRow &&
-            j > 0 && j < dotsPerCol &&
+            i >= 0 && i < dotsPerRow &&
+            j >= 0 && j < dotsPerCol &&
             cellState[i][j] == 0 &&
             (
                 e + 1 == i && f + 1 == j ||
@@ -147,45 +139,105 @@ public class   CheckersProgram extends javax.swing.JFrame implements MouseListen
                 e - 2 == i && f - 2 == j && cellState[e - 1][f - 1] != 0
             )
         ) {
-            jLabelDots[e][f].move(jLabelSquare[i][j].getX() + size / 4,jLabelSquare[i][j].getY() + size / 4);
+            return true;
+        }
 
-            jLabelDots[i][j] = jLabelDots[e][f];
-            jLabelDots[e][f] = null;
+        return false;
+    }
 
-            cellState[i][j] = cellState[e][f];
-            cellState[e][f] = 0;
 
-            // Stergem piesa inamica
-            if (e + 2 == i && f + 2 == j && cellState[e + 1][f + 1] == cellStateEnemy) {
-                cellState[e + 1][f + 1] = 0;
-                this.remove(jLabelDots[e + 1][f + 1]);
+    /*
+    Mut piesa de pe [e][f] pe [i][j]
+     celula pe care am dat drumul piesa este la i,j
+     celula curenta pe care este piesa este la pozitia e,f
+     */
+    public void doMove(int e, int f, int i, int j) {
+        int cellStateEnemy = cellState[e][f] == 1 ? 2 : 1;
+
+        jLabelDots[e][f].move(jLabelSquare[i][j].getX() + size / 4,jLabelSquare[i][j].getY() + size / 4);
+
+        jLabelDots[i][j] = jLabelDots[e][f];
+        jLabelDots[e][f] = null;
+
+        cellState[i][j] = cellState[e][f];
+        cellState[e][f] = 0;
+
+        // Stergem piesa inamica
+        if (e + 2 == i && f + 2 == j && cellState[e + 1][f + 1] == cellStateEnemy) {
+            cellState[e + 1][f + 1] = 0;
+            this.remove(jLabelDots[e + 1][f + 1]);
+        }
+
+
+        if( e + 2 == i && f - 2 == j && cellState[e + 1][f - 1] == cellStateEnemy) {
+            cellState[e + 1][f - 1] = 0;
+            this.remove(jLabelDots[e + 1][f - 1]);
+
+        }
+
+        if(e - 2 == i && f + 2 == j && cellState[e - 1][f + 1] == cellStateEnemy) {
+            cellState[e - 1][f + 1] = 0;
+            this.remove(jLabelDots[e - 1][f + 1]);
+        }
+
+        if(e - 2 == i && f - 2 == j && cellState[e - 1][f - 1] == cellStateEnemy) {
+            cellState[e - 1][f - 1] = 0;
+            this.remove(jLabelDots[e - 1][f - 1]);
+        }
+    }
+
+    public void piesaDropped(MouseEvent evt) {
+        // src este labelul de pe care mutam piesa
+        Component src = evt.getComponent();
+
+        // aflam x si y relativ la frame si aflam celula de la pozitia respectiva
+        int i = (evt.getX() + src.getX()) / size;
+        int j = (evt.getY() + src.getY()) / size;
+        int e = src.getX() / size;
+        int f = src.getY() / size;
+
+        if (
+            cellState[e][f] == humanId &&
+            canMove(e, f, i, j)
+        ) {
+            doMove(e, f, i, j);
+
+            // Muta calculator
+            int moves[][] = {
+                {-1, -1},
+                {-1, +1},
+                {+1, -1},
+                {+1, +1},
+                {-2, -2},
+                {-2, +2},
+                {+2, -2},
+                {+2, +2},
+            };
+
+
+
+            boolean hasMoved = false;
+            for (int a = 0; a < dotsPerRow; a++) {
+                for (int b = 0; b < dotsPerCol; b++) {
+                    if (cellState[a][b] == enemyId) {
+                        for (int c = 0; c < moves.length; c++) {
+                            if (canMove(a, b, a + moves[c][0], b + moves[c][1])) {
+                                doMove(a, b, a + moves[c][0], b + moves[c][1]);
+                                hasMoved = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (hasMoved) {
+                        break;
+                    }
+                }
+
+                if (hasMoved) {
+                    break;
+                }
             }
-
-
-            if( e + 2 == i && f - 2 == j && cellState[e + 1][f - 1] == cellStateEnemy) {
-                cellState[e + 1][f - 1] = 0;
-                this.remove(jLabelDots[e + 1][f - 1]);
-
-            }
-
-            if(e - 2 == i && f + 2 == j && cellState[e - 1][f + 1] == cellStateEnemy) {
-                cellState[e - 1][f + 1] = 0;
-                this.remove(jLabelDots[e - 1][f + 1]);
-            }
-
-            if(e - 2 == i && f - 2 == j && cellState[e - 1][f - 1] == cellStateEnemy) {
-                cellState[e - 1][f - 1] = 0;
-                this.remove(jLabelDots[e - 1][f - 1]);
-            }
-             {
-
-            }
-
-            /*
-            Mut piesa de pe [e][f] pe [i][j]
-             celula pe care am dat drumul piesa este la i,j
-             celula curenta pe care este piesa este la pozitia e,f
-             */
         }
 
 
