@@ -7,6 +7,12 @@
  * To change this template use File | Settings | File Templates.
  */
 
+/*
+Reguli:
+- un jucator poate muta doar pe diagonala, atat inainte cat si inapoi
+-
+ */
+
 package Checkers;
 
 import java.awt.*;
@@ -20,7 +26,7 @@ import java.awt.event.MouseListener;
 
 // jframe == fereastra
 // mouselistener == ca sa primim evenimente legate de mouse
-public class CheckersProgram extends javax.swing.JFrame implements MouseListener
+public class   CheckersProgram extends javax.swing.JFrame implements MouseListener
 {
     // Celulele albe si negre
     public javax.swing.JLabel[][] jLabelSquare;
@@ -36,10 +42,11 @@ public class CheckersProgram extends javax.swing.JFrame implements MouseListener
 
     public CheckersProgram()
     {
-        int width = 800;
+        int width = 500;
         this.setSize(width, width + 20);
         this.setResizable(false);
         this.setTitle("Checkers");
+        this.setLocationRelativeTo(null);
         size = width / dotsPerRow;
 
         // instantam arrayurile
@@ -113,22 +120,69 @@ public class CheckersProgram extends javax.swing.JFrame implements MouseListener
     }
 
     public void piesaDropped(MouseEvent evt) {
+        // src este labelul de pe care mutam piesa
         Component src = evt.getComponent();
 
         // aflam x si y relativ la frame si aflam celula de la pozitia respectiva
         int i = (evt.getX() + src.getX()) / size;
         int j = (evt.getY() + src.getY()) / size;
-//        jLabelSquare[i][j].setBackground(Color.PINK);
+        int e = src.getX() / size;
+        int f = src.getY() / size;
 
-        boolean potsamut = true;
-        if (potsamut)           {
-            int e = src.getX() / size;
-            int f = src.getY() / size;
+        int cellStateEnemy = cellState[e][f] == 1 ? 2 : 1;
+
+        if (
+            i > 0 && i < dotsPerRow &&
+            j > 0 && j < dotsPerCol &&
+            cellState[i][j] == 0 &&
+            (
+                e + 1 == i && f + 1 == j ||
+                e + 1 == i && f - 1 == j ||
+                e - 1 == i && f + 1 == j ||
+                e - 1 == i && f - 1 == j ||
+
+                e + 2 == i && f + 2 == j && cellState[e + 1][f + 1] != 0 ||
+                e + 2 == i && f - 2 == j && cellState[e + 1][f - 1] != 0 ||
+                e - 2 == i && f + 2 == j && cellState[e - 1][f + 1] != 0 ||
+                e - 2 == i && f - 2 == j && cellState[e - 1][f - 1] != 0
+            )
+        ) {
             jLabelDots[e][f].move(jLabelSquare[i][j].getX() + size / 4,jLabelSquare[i][j].getY() + size / 4);
 
             jLabelDots[i][j] = jLabelDots[e][f];
             jLabelDots[e][f] = null;
+
+            cellState[i][j] = cellState[e][f];
+            cellState[e][f] = 0;
+
+            // Stergem piesa inamica
+            if (e + 2 == i && f + 2 == j && cellState[e + 1][f + 1] == cellStateEnemy) {
+                cellState[e + 1][f + 1] = 0;
+                this.remove(jLabelDots[e + 1][f + 1]);
+            }
+
+
+            if( e + 2 == i && f - 2 == j && cellState[e + 1][f - 1] == cellStateEnemy) {
+                cellState[e + 1][f - 1] = 0;
+                this.remove(jLabelDots[e + 1][f - 1]);
+
+            }
+
+            if(e - 2 == i && f + 2 == j && cellState[e - 1][f + 1] == cellStateEnemy) {
+                cellState[e - 1][f + 1] = 0;
+                this.remove(jLabelDots[e - 1][f + 1]);
+            }
+
+            if(e - 2 == i && f - 2 == j && cellState[e - 1][f - 1] == cellStateEnemy) {
+                cellState[e - 1][f - 1] = 0;
+                this.remove(jLabelDots[e - 1][f - 1]);
+            }
+             {
+
+            }
+
             /*
+            Mut piesa de pe [e][f] pe [i][j]
              celula pe care am dat drumul piesa este la i,j
              celula curenta pe care este piesa este la pozitia e,f
              */
